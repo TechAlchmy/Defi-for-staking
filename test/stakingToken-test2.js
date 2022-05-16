@@ -49,7 +49,7 @@ describe("StakingToken", function () {
     console.log("user addr is " + user.address);
 
     console.log("total supply is " + TOTAL_SUPPLY);
-    stakingToken = await StakingToken.deploy(owner.address, TOTAL_SUPPLY.toString());
+    stakingToken = await StakingToken.deploy(TOTAL_SUPPLY.toString());
     await stakingToken.deployed();
     provider = ethers.provider;
     
@@ -224,7 +224,7 @@ describe("StakingToken", function () {
         console.log("owner add is " + owner.address);
         console.log("user addr is " + user.address);
     
-        stakingToken = await StakingToken.deploy(owner.address, TOTAL_SUPPLY.toString());
+        stakingToken = await StakingToken.deploy(TOTAL_SUPPLY.toString());
         await stakingToken.deployed();
         provider = ethers.provider;
         // set up  user with USER_INITIAL token (transferred from owner)

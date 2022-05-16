@@ -10,9 +10,9 @@ import "hardhat/console.sol";
 contract StakingToken  is ERC20, Ownable {
     ///using SafeMath for uint;
 
-    constructor(address _owner, uint _supply) ERC20("TestToken","TST") {
-        _mint(_owner, _supply);
-        console.log("owner() is " , owner());
+    constructor(uint _supply) ERC20("TestToken","TST") {
+       _mint(msg.sender, _supply);
+        //console.log("owner() is " , owner());
     }
 
 /// minimum a mount of token to stake (in wei / 10**18 )
@@ -34,7 +34,7 @@ mapping(address => uint) internal rewards;
 
 ///@notice A method for stakeholder to stake tokens
 ///@param _amount - amount of tokens to be staked
-function stakeToken(uint _amount) public payable {
+function stakeToken(uint _amount) external payable {
 
     ///require(_amount > 0, "staking amount must be > 0");
     require(_amount > MIN_TOKEN, "staking amount must be >= 1 * 10**18");
@@ -54,7 +54,7 @@ function stakeToken(uint _amount) public payable {
 
 ///@notice A method for stakeholder to unstake tokens
 ///@param _amount - amount of tokens to be unstaked
-function unStakeToken(uint _amount) public {
+function unStakeToken(uint _amount) external {
     uint balance = stakingBalance[msg.sender];
 
     require(balance > 0, "staking balance must be > 0");
@@ -71,7 +71,8 @@ function unStakeToken(uint _amount) public {
     ///console.log("allowance is " , allowance);
     ///require(allowance >= _amount, "check the token allowance");
     ///transferFrom(address(this), msg.sender, _amount);
-    this.transfer(msg.sender,_amount);
+    require(this.transfer(msg.sender,_amount), "transfer failed");
+
 
     console.log("StakingToken : contract balance after user unstake is ", balanceOf(address(this)));
 
@@ -106,7 +107,7 @@ function deleteStakeholder(address _stakeholder) internal {
 }
 
 ///@notice obtain the total stakes for all stakeholers
-function totalStakingBalance() public view returns (uint) {
+function totalStakingBalance() external view returns (uint) {
     uint _totalBalance = 0;
 
     for (uint i = 0; i < stakeholders.length; i++) {
@@ -117,7 +118,7 @@ function totalStakingBalance() public view returns (uint) {
 
 //@notice user can request his own staking balance
 //@return user's own staking balance
-function myStakingBalance() public view returns (uint) {
+function myStakingBalance() external view returns (uint) {
     return stakingBalance[msg.sender];
 }
 
@@ -158,7 +159,7 @@ function calculateReward(address _stakeholder) public view returns (uint) {
 }
 
 ///@notice (only owner can) distribute the rewards to each stakehoolder
-function distributeRewards() public onlyOwner {
+function distributeRewards() external onlyOwner {
     for (uint i = 0; i < stakeholders.length; i++ ) {
         address _stakeholder = stakeholders[i];
         if (hasStaked[_stakeholder]) {
@@ -171,7 +172,7 @@ function distributeRewards() public onlyOwner {
 
 ///@notice (only owner can ) sum up rewards for all stakeholders
 ///@return total sum of rewards distributed
-function totalRewards() public view  onlyOwner returns (uint) {
+function totalRewards() external view  onlyOwner returns (uint) {
     uint _totalRewards = 0;
     for (uint i = 0; i < stakeholders.length; i++) {
         _totalRewards += rewards[stakeholders[i]];
@@ -183,7 +184,7 @@ function totalRewards() public view  onlyOwner returns (uint) {
 ///@notice allow owner to check any stakeholder's rewards
 ///@param _stakeholder : address of stakeholder
 ///@return _stakerholder's rewards
-function rewardBalance(address _stakeholder) public view onlyOwner returns (uint) {
+function rewardBalance(address _stakeholder) external view onlyOwner returns (uint) {
     if (hasStaked[_stakeholder]) {
         return rewards[_stakeholder];
     }
@@ -204,11 +205,11 @@ function myRewardBalance() public view returns (uint) {
 }
 
 ///@notice allow stakeholder to withdraw his own rewards
-function withdrawReward() public {
+function withdrawReward() external {
     uint reward = myRewardBalance();
     require(reward > 0, "reward must be > 0");
     rewards[msg.sender] = 0;
-    this.transfer(msg.sender,reward);
+    require(this.transfer(msg.sender,reward), "transfer reward failed");
 }
 
 
