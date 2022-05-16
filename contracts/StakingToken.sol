@@ -15,8 +15,8 @@ contract StakingToken  is ERC20, Ownable {
         console.log("owner() is " , owner());
     }
 
-/// for simplicity, token to stake must be whole and >= 100
-uint constant MIN_TOKEN = 10;
+/// minimum a mount of token to stake (in wei / 10**18 )
+uint constant MIN_TOKEN = 1 ether; 
 
 ///stakeholders array
 address[] internal stakeholders;
@@ -37,10 +37,10 @@ mapping(address => uint) internal rewards;
 function stakeToken(uint _amount) public payable {
 
     ///require(_amount > 0, "staking amount must be > 0");
-    require(_amount > MIN_TOKEN, "staking amount must be >= 10");
+    require(_amount > MIN_TOKEN, "staking amount must be >= 1 * 10**18");
     console.log("msg.sender is ", msg.sender);
-    ///console.log("balanceOf(msg.sender) is " , balanceOf(msg.sender) );
-    ///console.log("_amount is ", _amount);
+    console.log("balanceOf(msg.sender) is " , balanceOf(msg.sender) );
+    console.log("_amount is ", _amount);
     require(balanceOf(msg.sender) >= _amount, "staking amount > balance");
     transfer(address(this), _amount);
     ///payable(address(this)).transfer(_amount);
@@ -56,8 +56,6 @@ function stakeToken(uint _amount) public payable {
 ///@param _amount - amount of tokens to be unstaked
 function unStakeToken(uint _amount) public {
     uint balance = stakingBalance[msg.sender];
-    //console.log("stakingBalance(msg.sender) is " , stakingBalance[msg.sender] );
-    //console.log("_amount is ", _amount);
 
     require(balance > 0, "staking balance must be > 0");
     require(balance >= _amount, "staking amount must be < balance");
@@ -68,9 +66,6 @@ function unStakeToken(uint _amount) public {
     if (stakingBalance[msg.sender] == 0) {
         deleteStakeholder((msg.sender));
     }
-    ///console.log("address(this) is " , address(this));
-    ///console.log("owner() is ", owner());
-    ///approve(owner(),_amount);
 
     ///uint allowance = allowance(msg.sender, address(this));
     ///console.log("allowance is " , allowance);
@@ -206,6 +201,14 @@ function myRewardBalance() public view returns (uint) {
     else {
       return 0;
     }
+}
+
+///@notice allow stakeholder to withdraw his own rewards
+function withdrawReward() public {
+    uint reward = myRewardBalance();
+    require(reward > 0, "reward must be > 0");
+    rewards[msg.sender] = 0;
+    this.transfer(msg.sender,reward);
 }
 
 
